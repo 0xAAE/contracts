@@ -60,12 +60,9 @@ public class EscrowContract extends SmartContract {
         if(date != null) {
             return "release date may be set only once";
         }
-        Date new_date;
-        try {
-            new_date = parseDate(new String(text));
-        }
-        catch(ParseException x) {
-            return "release date must be set in format dd.mm.yyyy (f.i. 04.07.1970)";
+        Date new_date = parseDate(new String(text));
+        if(new_date == null) {
+            return "release date must be set in unix format";
         }
         date = new_date;
         return "release date set to " + printDate(date);
@@ -93,6 +90,7 @@ public class EscrowContract extends SmartContract {
             if(sum.compareTo(balance) <= 0) {
                 sum = balance;
                 if(sum.doubleValue() < 0.001) {
+                    is_closed = true;
                     return "deposit is empty";
                 }
             }
@@ -131,22 +129,20 @@ public class EscrowContract extends SmartContract {
         return printDate(date);
     }
 
-    private Date parseDate(String dob) throws ParseException {
-        SimpleDateFormat formatter = new SimpleDateFormat("dd.MM.yyyy");
-        Date date = formatter.parse(dob);
-        return date;
+    private Date parseDate(String unix_time) {
+        long ts_msec = 0;
+        try {
+            ts_msec = Integer.parseInt(unix_time);
+        }
+        catch(NumberFormatException x) {
+            return null;
+        }
+        return new Date((long)ts_msec * 1000);
     }
 
     private String printDate(Date d) {
-        SimpleDateFormat fmt = new SimpleDateFormat("dd.MM.yyyy");
+        SimpleDateFormat fmt = new SimpleDateFormat("dd.MM.yyyy HH:mm::ss");
         return fmt.format(d);
-    }
-
-    private boolean isAB() {
-        if(isA() || isB()) {
-            return true;
-        }
-        return false;
     }
 
     private boolean isAD() {
@@ -181,11 +177,4 @@ public class EscrowContract extends SmartContract {
         return is_closed;
     }
 
-    public String close() {
-        if(!isB()) {
-            return "only beneficiary can close contract";
-        }
-        is_closed = true;
-        return "contract is closed now";
-    }
 }
