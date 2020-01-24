@@ -35,6 +35,7 @@ public class EscrowContract extends SmartContract {
 
     public EscrowContract() {
         administrator = initiator;
+        //date = parseDate("1579782900");
     }
 
     @Override
@@ -92,9 +93,9 @@ public class EscrowContract extends SmartContract {
         if(beneficiary.isEmpty()) {
             return "beneficiary is not set";
         }
-        if(!isB()) {
-            return "only beneficiary can wihtdraw (not " + initiator + ")";
-        }
+        // if(!isB()) {
+        //     return "only beneficiary can wihtdraw (not " + initiator + ")";
+        // }
         if(date == null) {
             return "date to release deposit is not set";
         }
