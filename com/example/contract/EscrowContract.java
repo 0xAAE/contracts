@@ -170,12 +170,12 @@ public class EscrowContract extends SmartContract {
         return false;
     }
 
-    private boolean isB() {
-        if(initiator.equals(beneficiary)) {
-            return true;
-        }
-        return false;
-    }
+    // private boolean isB() {
+    //     if(initiator.equals(beneficiary)) {
+    //         return true;
+    //     }
+    //     return false;
+    // }
 
     private boolean isA() {
         if(initiator.equals(administrator)) {
