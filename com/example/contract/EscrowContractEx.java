@@ -1,8 +1,6 @@
 package com.example.contract;
 
-import com.credits.scapi.annotations.*;
 import com.credits.scapi.v3.SmartContract;
-import com.credits.scapi.v1.*;
 import java.math.BigDecimal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
