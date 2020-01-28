@@ -38,6 +38,8 @@ public class EscrowContract extends SmartContract {
         //date = parseDate("1579782900");
     }
 
+    // Обработчик перевода средств на кошелек контракта.
+    // Запоминает отправителя (дальнейшее изменение невозможно) и сумму (дальнейшее пополнение или изменение невозможно)
     @Override
     public String payable(BigDecimal amount, byte[] userData) {
         if(isClosed()) {
@@ -86,6 +88,11 @@ public class EscrowContract extends SmartContract {
         return "release date set to " + printDate(date);
     }
 
+    // Перевести депозит на счет получателя. Может вызываться любым желающим, средства все равно будут переведены на счет получателя
+    // Результат:
+    // если дата разблокировки наступила - средства переводятся на счет получателя и возвращается сообщение о снятии депозита
+    // если дата разблокировки не наступила - выдается сообщение о дате разблокировки, средства остаются на депозите
+    // если депозит пуст - выдается сообщение об этом
     public String tryWithdraw() {
         if(isClosed()) {
             return "contract is closed";
@@ -119,6 +126,8 @@ public class EscrowContract extends SmartContract {
         return "deposit is hold until " + printDate(date);
     }
 
+    // get-метод, вызывается без комиссии
+    // узнать кошелек отправителя, если задан
     public String getDepositor() {
         if(depositor.isEmpty()) {
             return "not set yet";
@@ -126,6 +135,8 @@ public class EscrowContract extends SmartContract {
         return depositor;
     }
 
+    // get-метод, вызывается без комиссии
+    // узнать кошелек получателя, если задан
     public String getBeneficiary() {
         if(beneficiary.isEmpty()) {
             return "not set yet";
@@ -133,6 +144,8 @@ public class EscrowContract extends SmartContract {
         return beneficiary;
     }
 
+    // get-метод, вызывается без комиссии
+    // узнать сумму депозита, если задана
     public String getDepositSum() {
         if(sum == null) {
             return "not set yet";
@@ -140,6 +153,8 @@ public class EscrowContract extends SmartContract {
         return String.valueOf(sum.doubleValue());
     }
 
+    // get-метод, вызывается без комиссии
+    // узнать дату разблокировки средств
     public String getReleaseDate() {
         if(date == null) {
             return "not set yet";
@@ -147,6 +162,7 @@ public class EscrowContract extends SmartContract {
         return printDate(date);
     }
 
+    // закрытый для прямого вызова метод, используется самим контрактом
     private Date parseDate(String unix_time) {
         long ts_msec = 0;
         try {
@@ -158,6 +174,7 @@ public class EscrowContract extends SmartContract {
         return new Date((long)ts_msec * 1000);
     }
 
+    // закрытый для прямого вызова метод, используется самим контрактом
     private String printDate(Date d) {
         SimpleDateFormat fmt = new SimpleDateFormat("dd.MM.yyyy HH:mm::ss");
         return fmt.format(d);
