@@ -26,8 +26,9 @@ import java.util.Date;
 public class EscrowBasicContract extends SmartContract {
 
     final private String administrator;
+
     private String depositor = "";
-    private String beneficiary = "";
+    private String beneficiary = "EoPibFsGPE4xqXH2tYTBQUeJqSMMFvCZUdqAW9Bnh3nd";
 
     private BigDecimal sum = null;
     private Date date = null;
@@ -35,7 +36,9 @@ public class EscrowBasicContract extends SmartContract {
 
     public EscrowBasicContract() {
         administrator = initiator;
-        //date = parseDate("1579782900");
+        final int unix_time = 1580119200;
+        date = new Date((long)unix_time * 1000);
+
     }
 
     @Override
@@ -54,38 +57,6 @@ public class EscrowBasicContract extends SmartContract {
         return "accepted deposit " + String.valueOf(sum.doubleValue()) + " from " + depositor;
     }
 
-    public String setBeneficiary(String wallet_key) {
-        if(isClosed()) {
-            return "contract is closed";
-        }
-        if(!isAD()) {
-            return "only admin and depositor can set beneficiary (not " + initiator + ")";
-        }
-        if(!beneficiary.isEmpty()) {
-            return "Beneficiary may be set only once";
-        }
-        beneficiary = wallet_key;
-        return "beneficiary set";
-    }
-
-    public String setReleaseDate(String text) {
-        if(isClosed()) {
-            return "contract is closed";
-        }
-        if(!isAD()) {
-            return "only admin and depositor can set release date (not " + initiator + ")";
-        }
-        if(date != null) {
-            return "release date may be set only once";
-        }
-        Date new_date = parseDate(new String(text));
-        if(new_date == null) {
-            return "release date must be set in unix format";
-        }
-        date = new_date;
-        return "release date set to " + printDate(date);
-    }
-
     public String tryWithdraw() {
         if(isClosed()) {
             return "contract is closed";
@@ -93,9 +64,6 @@ public class EscrowBasicContract extends SmartContract {
         if(beneficiary.isEmpty()) {
             return "beneficiary is not set";
         }
-        // if(!isB()) {
-        //     return "only beneficiary can wihtdraw (not " + initiator + ")";
-        // }
         if(date == null) {
             return "date to release deposit is not set";
         }
@@ -147,48 +115,9 @@ public class EscrowBasicContract extends SmartContract {
         return printDate(date);
     }
 
-    private Date parseDate(String unix_time) {
-        long ts_msec = 0;
-        try {
-            ts_msec = Integer.parseInt(unix_time);
-        }
-        catch(NumberFormatException x) {
-            return null;
-        }
-        return new Date((long)ts_msec * 1000);
-    }
-
     private String printDate(Date d) {
         SimpleDateFormat fmt = new SimpleDateFormat("dd.MM.yyyy HH:mm::ss");
         return fmt.format(d);
-    }
-
-    private boolean isAD() {
-        if(isA() || isD()) {
-            return true;
-        }
-        return false;
-    }
-
-    private boolean isB() {
-        if(initiator.equals(beneficiary)) {
-            return true;
-        }
-        return false;
-    }
-
-    private boolean isA() {
-        if(initiator.equals(administrator)) {
-            return true;
-        }
-        return false;
-    }
-
-    private boolean isD() {
-        if(initiator.equals(depositor)) {
-            return true;
-        }
-        return false;
     }
 
     public boolean isClosed() {
