@@ -10,6 +10,11 @@ public class TestContracts
         testEscrowContract();
     }
 
+    public static void testICOContract() {
+        ICOTokenContract token = new ICOTokenContract();
+        
+    }
+
     public static void testEscrowContract() {
 
         final String pk_admin = "5B3YXqDTcWQFGAqEJQJP3Bg1ZK8FFtHtgCiFLT5VAxpe";

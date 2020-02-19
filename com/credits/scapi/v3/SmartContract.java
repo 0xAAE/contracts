@@ -1,5 +1,7 @@
 package com.credits.scapi.v3;
 
+import java.math.BigDecimal;
+
 public class SmartContract extends com.credits.scapi.v0.SmartContract {
 
     private long blockchainTimeMillis = 0;
@@ -11,8 +13,23 @@ public class SmartContract extends com.credits.scapi.v0.SmartContract {
         blockchainTimeMillis = unix_msec;
     }
 
-    protected long getBlockchainTimeMills() {
+    public long getBlockchainTimeMills() {
         return blockchainTimeMillis;
+    }
+
+    protected void sendTransaction(String from, String to, double amount, double fee, byte... userData) {
+    }
+
+    protected BigDecimal getBalance(String addressBase58) {
+        return new BigDecimal(0.0);
+    }
+
+    protected byte[] getSeed() {
+        return null;
+    }
+
+    protected String payable(BigDecimal amount, byte[] userData) {
+        return "";
     }
 
 }
