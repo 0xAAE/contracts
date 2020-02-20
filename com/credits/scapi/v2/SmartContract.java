@@ -5,6 +5,7 @@ import com.credits.scapi.internal.v0.SmartContractApi;
 import java.math.BigDecimal;
 
 public abstract class SmartContract extends SmartContractApi {
+    private static final long serialVersionUID = -7107388825339899265L;
 
     protected final transient long accessId = 0;
     protected final transient String initiator = null;

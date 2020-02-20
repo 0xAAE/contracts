@@ -25,8 +25,6 @@ import java.util.Date;
 
 public class EscrowBasicContract extends SmartContract {
 
-    final private String administrator;
-
     private String depositor = "";
     private String beneficiary = "EoPibFsGPE4xqXH2tYTBQUeJqSMMFvCZUdqAW9Bnh3nd";
 
@@ -35,7 +33,6 @@ public class EscrowBasicContract extends SmartContract {
     private boolean is_closed= false;
 
     public EscrowBasicContract() {
-        administrator = initiator;
         final int unix_time = 1580119200;
         date = new Date((long)unix_time * 1000);
 

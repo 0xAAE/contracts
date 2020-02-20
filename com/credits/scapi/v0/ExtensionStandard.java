@@ -1,6 +1,6 @@
 package com.credits.scapi.v0;
 
-@Deprecated
+//@Deprecated
 public interface ExtensionStandard extends BasicStandard {
 
     void register();

@@ -15,7 +15,6 @@ import static java.math.BigDecimal.ZERO;
 public class ICOTokenContract extends SmartContract implements ExtensionStandard {
 
     private final String owner;
-    private final BigDecimal tokenCost;
     private final int decimal;
     HashMap<String, BigDecimal> balances;
     private String name;
@@ -32,7 +31,6 @@ public class ICOTokenContract extends SmartContract implements ExtensionStandard
         name = "OCIToken";
         symbol = "OCIT";
         decimal = 0;
-        tokenCost = new BigDecimal(0).setScale(decimal, ROUND_FLOOR);
         totalCoins = new BigDecimal(1000000L).setScale(decimal, ROUND_FLOOR);
 
         owner = initiator;

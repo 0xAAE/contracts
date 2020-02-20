@@ -5,6 +5,7 @@ import java.math.BigDecimal;
 
 @Deprecated
 public abstract class SmartContract implements Serializable {
+    private static final long serialVersionUID = -7544650022718657167L;
 
     protected final transient long accessId = 0;
     protected final transient String initiator = null;
