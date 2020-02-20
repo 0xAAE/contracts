@@ -4,10 +4,12 @@ import java.math.BigDecimal;
 
 public class SmartContract extends com.credits.scapi.v0.SmartContract {
 
-    private long blockchainTimeMillis = 0;
-
     public SmartContract() {
     }
+
+    //#region testing support
+
+    private long blockchainTimeMillis = 0;
 
     public void test_setBlockchainTimeMills(long unix_msec) {
         blockchainTimeMillis = unix_msec;
@@ -17,7 +19,13 @@ public class SmartContract extends com.credits.scapi.v0.SmartContract {
         return blockchainTimeMillis;
     }
 
-    protected void sendTransaction(String from, String to, double amount, double fee, byte... userData) {
+    //#endregion testing support
+
+    protected void sendTransaction(String from, String to, double amount, byte[] data) {
+    }
+
+    protected java.lang.Object invokeExternalContract(String contractAddress, String method, Object... params) {
+        return null;
     }
 
     protected BigDecimal getBalance(String addressBase58) {

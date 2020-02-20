@@ -9,13 +9,11 @@ public class SmartContract {
 
     private static String deployer = "";
 
+    //#region testing support
+
     protected String initiator = "";
     protected String contractAddress = "";
     private BigDecimal balance = BigDecimal.ZERO;
-
-    public SmartContract() {
-        initiator = SmartContract.deployer;
-    }
 
     public void test_setInitiator(String key_base58) {
         initiator = key_base58;
@@ -35,6 +33,12 @@ public class SmartContract {
         String result = payable(sum, userData);
         balance = balance.add(sum);
         return result;
+    }
+
+    //#endregion testing support
+
+    public SmartContract() {
+        initiator = SmartContract.deployer;
     }
 
     protected String payable(BigDecimal amount, byte[] userData) {
@@ -57,13 +61,9 @@ public class SmartContract {
         System.out.println("sendTransaction(): " + Double.toString(sum) + " send from " + from_base_58 + " to " + to_base58 + data_desc);
     }
 
-    protected void sendTransaction(String from_base_58, String to_base58, double sum, double fee, byte[] data) {
+    protected void sendTransaction(String b58_from, String b58_to, double sum, double fee, byte[] data) {
         System.out.println("sendTransaction(): obsolete call, set fee " + Double.toString(fee));
-        sendTransaction(from_base_58, to_base58, sum, data);
+        sendTransaction(b58_from, b58_to, sum, data);
     }
 
-    protected void sendTransaction(String from_base_58, String to_base58, double sum, double fee) {
-        System.out.println("sendTransaction(): obsolete call, set fee " + Double.toString(fee) + " but not set userData");
-        sendTransaction(from_base_58, to_base58, sum, null);
-    }
 }

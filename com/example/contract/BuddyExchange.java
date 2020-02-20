@@ -72,7 +72,7 @@ public class BuddyExchange extends SmartContract {
 	}
 	
     private void return_and_stop(double sum){
-		sendTransaction(contractAddress, deployer, sum - fee, fee);
+		sendTransaction(contractAddress, deployer, sum - fee, fee, null);
 		counter = 0;
 		stop_requested = false;
     }

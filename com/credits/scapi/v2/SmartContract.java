@@ -10,7 +10,7 @@ public abstract class SmartContract extends SmartContractApi {
     protected final transient String initiator = null;
     protected final String contractAddress = null;
 
-    protected void sendTransaction(String from, String to, double amount, double fee, byte... userData) {
+    protected void sendTransaction(String from, String to, double amount, byte... userData) {
     }
 
     protected Object invokeExternalContract(String contractAddress, String method, Object... params) {
