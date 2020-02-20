@@ -1,17 +1,18 @@
 package com.example.contract;
 
-import com.credits.scapi.v1.BasicTokenStandard;
-import com.credits.scapi.v3.SmartContract;
-
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
+import java.util.Date;
+import java.text.SimpleDateFormat;
 
-import static java.math.BigDecimal.ROUND_DOWN;
+import com.credits.scapi.v3.SmartContract;
+import com.credits.scapi.v0.ExtensionStandard;
+
+import static java.math.BigDecimal.ROUND_FLOOR;
 import static java.math.BigDecimal.ZERO;
 
-public class ICOTokenContract extends SmartContract implements BasicTokenStandard {
+public class ICOTokenContract extends SmartContract implements ExtensionStandard {
 
     private final String owner;
     private final BigDecimal tokenCost;
@@ -20,22 +21,27 @@ public class ICOTokenContract extends SmartContract implements BasicTokenStandar
     private String name;
     private String symbol;
     private BigDecimal totalCoins;
-    private BigDecimal burntCoins;
     private HashMap<String, Map<String, BigDecimal>> allowed;
     private boolean frozen;
+    private HashMap<String, Date> frozenAccounts;
 
     public ICOTokenContract() {
         super();
-        name = "ICOToken";
-        symbol = "ICOT";
-        decimal = 3;
-        tokenCost = new BigDecimal(1).setScale(decimal, ROUND_DOWN);
-        totalCoins = new BigDecimal(10_000_000).setScale(decimal, ROUND_DOWN);
-        burntCoins = new BigDecimal(0).setScale(decimal, ROUND_DOWN);
+
+        // deploy time settings
+        name = "OCIToken";
+        symbol = "OCIT";
+        decimal = 0;
+        tokenCost = new BigDecimal(0).setScale(decimal, ROUND_FLOOR);
+        totalCoins = new BigDecimal(1000000L).setScale(decimal, ROUND_FLOOR);
+
         owner = initiator;
         allowed = new HashMap<>();
         balances = new HashMap<>();
-        balances.put(owner, new BigDecimal(1_000_000L).setScale(decimal, ROUND_DOWN));
+        balances.put(owner, totalCoins);
+        frozen = false;
+
+        frozenAccounts = new HashMap<String, Date>();
     }
 
     @Override
@@ -44,9 +50,15 @@ public class ICOTokenContract extends SmartContract implements BasicTokenStandar
     }
 
     @Override
+    public void register() {
+        ensureIsNotFrozen(initiator);
+        balances.putIfAbsent(initiator, ZERO.setScale(decimal, ROUND_FLOOR));
+    }
+
+    @Override
     public boolean setFrozen(boolean isFrozen) {
-        if (!initiator.equals(owner)) {
-            throw new RuntimeException("unable change frozen state! The wallet " + initiator + " is not owner");
+        if (!isOwner()) {
+            throw new RuntimeException("only owner can change frozen state");
         }
         this.frozen = isFrozen;
         return true;
@@ -63,33 +75,39 @@ public class ICOTokenContract extends SmartContract implements BasicTokenStandar
     }
 
     @Override
-    public BigDecimal totalSupply() {
-        return totalCoins;
+    public String totalSupply() {
+        return totalCoins.toString();
     }
 
     @Override
-    public BigDecimal balanceOf(String owner) {
-        return getTokensBalance(owner);
+    public String balanceOf(String owner) {
+        return getTokensBalance(owner).toString();
     }
 
     @Override
-    public BigDecimal allowance(String owner, String spender) {
+    public String allowance(String owner, String spender) {
         if (allowed.get(owner) == null) {
-            return BigDecimal.ZERO;
+            return "0";
         }
         BigDecimal amount = allowed.get(owner).get(spender);
-        return amount != null ? amount : BigDecimal.ZERO;
+        return amount != null ? amount.toString() : "0";
     }
 
     @Override
-    public boolean transfer(String to, BigDecimal amount) {
+    public boolean transfer(String to, String amount) {
         contractIsNotFrozen();
+        ensureIsNotFrozen(initiator);
+        ensureIsNotFrozen(to);
+
         if (!to.equals(initiator)) {
-            BigDecimal decimalAmount = amount;
+            BigDecimal decimalAmount = toBigDecimal(amount);
             BigDecimal sourceBalance = getTokensBalance(initiator);
             BigDecimal targetTokensBalance = getTokensBalance(to);
+            if(targetTokensBalance == null) {
+                targetTokensBalance = ZERO.setScale(decimal, ROUND_FLOOR);
+            }
             if (sourceBalance.compareTo(decimalAmount) < 0) {
-                throw new RuntimeException("the wallet " + initiator + " doesn't have enough tokens to transfer");
+                throw new RuntimeException("the wallet"  + initiator + "doesn't have enough tokens to transfer");
             }
             balances.put(initiator, sourceBalance.subtract(decimalAmount));
             balances.put(to, targetTokensBalance.add(decimalAmount));
@@ -98,35 +116,49 @@ public class ICOTokenContract extends SmartContract implements BasicTokenStandar
     }
 
     @Override
-    public boolean transferFrom(String from, String to, BigDecimal amount) {
+    public boolean transferFrom(String from, String to, String amount) {
         contractIsNotFrozen();
+        ensureIsNotFrozen(initiator);
+        ensureIsNotFrozen(to);
+        ensureIsNotFrozen(from);
 
         if (!from.equals(to)) {
-            BigDecimal sourceBalance = getTokensBalance(from);
-            BigDecimal targetTokensBalance = getTokensBalance(to);
-            BigDecimal decimalAmount = amount;
-            if (sourceBalance.compareTo(decimalAmount) < 0)
+            BigDecimal fromBalance = getTokensBalance(from);
+            if(fromBalance == null ) {
+                throw new RuntimeException(from + " is not a holder");
+            }
+            BigDecimal toBalance = getTokensBalance(to);
+            if(toBalance == null) {
+                toBalance = ZERO.setScale(decimal, ROUND_FLOOR);
+            }
+            BigDecimal decimalAmount = toBigDecimal(amount);
+            if (fromBalance.compareTo(decimalAmount) < 0)
                 throw new RuntimeException("unable transfer tokens! The balance of " + from + " less then " + amount);
 
             Map<String, BigDecimal> spender = allowed.get(from);
-            if (spender == null || !spender.containsKey(initiator))
-                throw new RuntimeException("unable transfer tokens! The wallet " + from + " not allow transfer tokens for " + to);
+            if (spender == null || !spender.containsKey(initiator)) {
+                throw new RuntimeException(initiator + " require allowance from " + from + " to transfer tokens");
+            }
 
             BigDecimal allowTokens = spender.get(initiator);
             if (allowTokens.compareTo(decimalAmount) < 0) {
-                throw new RuntimeException("unable transfer tokens! Not enough allowed tokens. For the wallet " + initiator + " allow only " + allowTokens + " tokens");
+                throw new RuntimeException("maximum " + allowTokens + " tokens are allowed to transfer");
             }
 
             spender.put(initiator, allowTokens.subtract(decimalAmount));
-            balances.put(from, sourceBalance.subtract(decimalAmount));
-            balances.put(to, targetTokensBalance.add(decimalAmount));
+            balances.put(from, fromBalance.subtract(decimalAmount));
+            balances.put(to, toBalance.add(decimalAmount));
         }
         return true;
     }
 
     @Override
-    public void approve(String spender, BigDecimal amount) {
-        BigDecimal decimalAmount = amount;
+    public void approve(String spender, String amount) {
+        ensureIsNotFrozen(initiator);
+        ensureIsNotFrozen(spender);
+
+        initiatorIsRegistered();
+        BigDecimal decimalAmount = toBigDecimal(amount);
         Map<String, BigDecimal> initiatorSpenders = allowed.get(initiator);
         if (initiatorSpenders == null) {
             Map<String, BigDecimal> newSpender = new HashMap<>();
@@ -139,40 +171,108 @@ public class ICOTokenContract extends SmartContract implements BasicTokenStandar
     }
 
     @Override
-    public boolean burn(BigDecimal amount) {
+    public boolean burn(String amount) {
         contractIsNotFrozen();
-        BigDecimal decimalAmount = amount;
-        if (!initiator.equals(owner))
-            throw new RuntimeException("can not burn tokens! The wallet " + initiator + " is not owner");
-        if (totalCoins.compareTo(decimalAmount) < 0) totalCoins = ZERO.setScale(decimal, ROUND_DOWN);
-        else totalCoins = totalCoins.subtract(decimalAmount);
+        if (!isOwner())
+            throw new RuntimeException("can not burn tokens, only owner can");
+        ensureIsNotFrozen(initiator);
+
+        BigDecimal decimalAmount = toBigDecimal(amount);
+        BigDecimal burnable = getTokensBalance(owner);
+        if(burnable.compareTo(decimalAmount) < 0) {
+            throw new RuntimeException("unable to burn " + amount + " tokens but only " + burnable);
+        }
+        totalCoins = totalCoins.subtract(decimalAmount);
+        balances.put(owner, balances.get(owner).subtract(decimalAmount));
         return true;
     }
 
-    @Override
-    public String payable(BigDecimal amount, byte[] userData) {
+    public String getBurnAvail() {
         contractIsNotFrozen();
-        BigDecimal decimalAmount = amount;
-        if (totalCoins.compareTo(decimalAmount) < 0) throw new RuntimeException("not enough tokens to buy");
-        balances.put(initiator, Optional.ofNullable(balances.get(initiator)).orElse(ZERO).add(decimalAmount));
-        totalCoins = totalCoins.subtract(decimalAmount);
-        return "";
+        return getTokensBalance(owner).toString();
+    }
+
+    public void payable(String amount, String currency) {
+        throw new RuntimeException("unsupported operation: buy tokens");
+    }
+
+    @Override
+    public boolean buyTokens(String amount) {
+        throw new RuntimeException("unsupported operation: buy tokens");
     }
 
     private void contractIsNotFrozen() {
         if (frozen) throw new RuntimeException("unavailable action! The smart-contract is frozen");
     }
 
+    private void initiatorIsRegistered() {
+        if (!balances.containsKey(initiator))
+            throw new RuntimeException("operation rejected, " + initiator + " is not a holder");
+    }
+
     private BigDecimal toBigDecimal(String stringValue) {
-        return new BigDecimal(stringValue).setScale(decimal, ROUND_DOWN);
+        return new BigDecimal(stringValue).setScale(decimal, ROUND_FLOOR);
     }
 
     private BigDecimal getTokensBalance(String address) {
-        return Optional.ofNullable(balances.get(address)).orElseGet(() -> {
-            balances.put(address, ZERO.setScale(decimal, ROUND_DOWN));
-            return  ZERO.setScale(decimal, ROUND_DOWN);
-        });
+        if(!balances.containsKey(address)) {
+            return ZERO;
+        }
+        return balances.get(address);
     }
 
-   
+    // extensions
+
+    private boolean isOwner() {
+        return initiator.equals(owner);
+    }
+
+    private void ensureIsNotFrozen(String account) {
+        if (isAccountFrozen(account)) {
+            throw new RuntimeException("account is frozen");
+        }
+    }
+
+    public void freezeAccount(String account, long unix_time) {
+        if(!isOwner()) {
+            throw new RuntimeException("only contract owner can do this");
+        }
+        frozenAccounts.put(account, new Date(unix_time * 1000L));
+    }
+
+    public void defrostAccount(String account) {
+        if(!isOwner()) {
+            throw new RuntimeException("only contract owner can do this");
+        }
+        if(frozenAccounts.containsKey(account)) {
+            frozenAccounts.remove(account);
+        }
+    }
+
+    public boolean isAccountFrozen(String account) {
+        if(! frozenAccounts.containsKey(account)) {
+            return false;
+        }
+        Date now = new Date(getBlockchainTimeMills());
+        if(frozenAccounts.get(account).before(now)) {
+            if(!isOwner()) {
+                throw new RuntimeException("only contract owner may defrost account");
+            }
+            frozenAccounts.remove(account);
+            return false;
+        }
+        return true;
+    }
+
+    public String getAccountDefrostDate(String account) {
+        if(! frozenAccounts.containsKey(account)) {
+            return "is not frozen";
+        }
+        return printDate(frozenAccounts.get(account));
+    }
+
+    private String printDate(Date d) {
+        SimpleDateFormat fmt = new SimpleDateFormat("dd.MM.yyyy HH:mm::ss");
+        return fmt.format(d);
+    }
 }
