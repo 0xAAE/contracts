@@ -1,6 +1,7 @@
 package com.example.contract;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Date;
@@ -9,7 +10,6 @@ import java.text.SimpleDateFormat;
 import com.credits.scapi.v3.SmartContract;
 import com.credits.scapi.v0.ExtensionStandard;
 
-import static java.math.BigDecimal.ROUND_FLOOR;
 import static java.math.BigDecimal.ZERO;
 
 public class ICOTokenContract extends SmartContract implements ExtensionStandard {
@@ -31,7 +31,7 @@ public class ICOTokenContract extends SmartContract implements ExtensionStandard
         name = "OCIToken";
         symbol = "OCIT";
         decimal = 0;
-        totalCoins = new BigDecimal(1000000L).setScale(decimal, ROUND_FLOOR);
+        totalCoins = new BigDecimal(1000000L).setScale(decimal, RoundingMode.FLOOR);
 
         owner = initiator;
         allowed = new HashMap<>();
@@ -50,7 +50,7 @@ public class ICOTokenContract extends SmartContract implements ExtensionStandard
     @Override
     public void register() {
         ensureIsNotFrozen(initiator);
-        balances.putIfAbsent(initiator, ZERO.setScale(decimal, ROUND_FLOOR));
+        balances.putIfAbsent(initiator, ZERO.setScale(decimal, RoundingMode.FLOOR));
     }
 
     @Override
@@ -102,7 +102,7 @@ public class ICOTokenContract extends SmartContract implements ExtensionStandard
             BigDecimal sourceBalance = getTokensBalance(initiator);
             BigDecimal targetTokensBalance = getTokensBalance(to);
             if(targetTokensBalance == null) {
-                targetTokensBalance = ZERO.setScale(decimal, ROUND_FLOOR);
+                targetTokensBalance = ZERO.setScale(decimal, RoundingMode.FLOOR);
             }
             if (sourceBalance.compareTo(decimalAmount) < 0) {
                 throw new RuntimeException("the wallet"  + initiator + "doesn't have enough tokens to transfer");
@@ -127,7 +127,7 @@ public class ICOTokenContract extends SmartContract implements ExtensionStandard
             }
             BigDecimal toBalance = getTokensBalance(to);
             if(toBalance == null) {
-                toBalance = ZERO.setScale(decimal, ROUND_FLOOR);
+                toBalance = ZERO.setScale(decimal, RoundingMode.FLOOR);
             }
             BigDecimal decimalAmount = toBigDecimal(amount);
             if (fromBalance.compareTo(decimalAmount) < 0)
@@ -209,7 +209,7 @@ public class ICOTokenContract extends SmartContract implements ExtensionStandard
     }
 
     private BigDecimal toBigDecimal(String stringValue) {
-        return new BigDecimal(stringValue).setScale(decimal, ROUND_FLOOR);
+        return new BigDecimal(stringValue).setScale(decimal, RoundingMode.FLOOR);
     }
 
     private BigDecimal getTokensBalance(String address) {
