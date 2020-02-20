@@ -28,10 +28,6 @@ public class SmartContract extends com.credits.scapi.v0.SmartContract {
         return null;
     }
 
-    protected BigDecimal getBalance(String addressBase58) {
-        return new BigDecimal(0.0);
-    }
-
     protected byte[] getSeed() {
         return null;
     }

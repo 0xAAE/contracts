@@ -7,13 +7,14 @@ import com.credits.scapi.v3.SmartContract;
 
 public class TestContracts
 {
-    final static String pk_owner = "5B3YXqDTcWQFGAqEJQJP3Bg1ZK8FFtHtgCiFLT5VAxpe";
-    final static String pk_from = "JfFyPGxxN7ygUNfM5if5TfGmjGuJ1BaZqrGsTKPsWnZ";
-    final static String pk_to = "HL99dwfM3YPQnauN1djBvVLZNbC3b1FHwe5vPv8pDZ1y";
-    final static String pk_address = "39wm6VNcXZMj9y9BC13UQ1ZkWsjAAQYZDQ1uwGaE3qHF";
-    final static String pk_service = "4xho6RB8erqziK4jiyYdGX7YUXp7J2i3YoGSu96SEUJf";
-    final static long unix_sec = 1582285710;
+    final static String pk_owner = "owner_address";
+    final static String pk_from = "from_address";
+    final static String pk_to = "to_address";
+    final static String pk_address = "contract_address";
+    final static String pk_service = "service_address";
+    final static long tomorrow = 1582285710;
     final static long yesterday = 1582112910;
+    final static long now_ms = new Date().getTime();
 
     public static void main(String args[]) {
 
@@ -24,9 +25,41 @@ public class TestContracts
         System.out.println("\ntest ICOTokenContract\n");
         testOCIContract();
         System.out.println("\nok\n");
+
+        System.out.println("\ntest ICOContract\n");
+        testICOContract();
+        System.out.println("\nok\n");
     }
 
-    public static void testOCIContract() {
+    private static void testICOContract() {
+        ICOTokenContract.test_setDeployer(pk_owner);
+        ICOTokenContract token = new ICOTokenContract();
+        token.test_setAddress(pk_address);
+        token.test_setBlockchainTimeMills(now_ms);
+
+        ICOContract.test_setDeployer(pk_owner);
+        ICOContract ico = new ICOContract();
+        ico.test_setAddress(pk_service);
+        ico.test_setToken(token);
+        ico.test_setBlockchainTimeMills(now_ms);
+
+        // scenario-1
+        token.test_setInitiator(pk_owner);
+        ico.test_setInitiator(pk_owner);
+        token.transfer(pk_service, "50000");
+        System.out.println(ico.getAvailTokens());
+        System.out.println(ico.getAvailTokensTotalCost());
+        ico.updatePaymentLimits("2", "10000");
+        ico.test_setInitiator(pk_from);
+        System.out.println(ico.payable(new BigDecimal(5000.0), null));
+        System.out.println(ico.getAvailTokens());
+        System.out.println(ico.getAvailTokensTotalCost());
+        System.out.println(token.balanceOf(pk_owner));
+        System.out.println(token.balanceOf(pk_from));
+        System.out.println(token.balanceOf(pk_service));
+    }
+
+    private static void testOCIContract() {
         ICOTokenContract.test_setDeployer(pk_owner);
         ICOTokenContract token = new ICOTokenContract();
         token.test_setAddress(pk_address);
@@ -36,7 +69,7 @@ public class TestContracts
         // owner == initiator
         System.out.println(token.isAccountFrozen(pk_service));
         System.out.println(token.getAccountDefrostDate(pk_service));
-        token.freezeAccount(pk_service, unix_sec);
+        token.freezeAccount(pk_service, tomorrow);
         System.out.println(token.isAccountFrozen(pk_service));
         System.out.println(token.getAccountDefrostDate(pk_service));
         token.defrostAccount(pk_service);
@@ -53,7 +86,7 @@ public class TestContracts
         System.out.println(token.isAccountFrozen(pk_service));
         System.out.println(token.getAccountDefrostDate(pk_service));
         try{
-            token.freezeAccount(pk_service, unix_sec);
+            token.freezeAccount(pk_service, tomorrow);
         } catch(RuntimeException x) {
             System.out.println(x);
         }
@@ -172,10 +205,10 @@ public class TestContracts
         System.out.println(token.balanceOf(pk_from));
     }
 
-    public static void testEscrowContract() {
+    private static void testEscrowContract() {
         final String pk_admin = pk_owner;
-        final String pk_deponent = "JfFyPGxxN7ygUNfM5if5TfGmjGuJ1BaZqrGsTKPsWnZ";
-        final String pk_beneficiary = "HL99dwfM3YPQnauN1djBvVLZNbC3b1FHwe5vPv8pDZ1y";
+        final String pk_deponent = "deponent_address";
+        final String pk_beneficiary = "beneficiary_address";
 
         final int unix_sec = 1579871500;
         final BigDecimal deposit_sum = new BigDecimal(1000.0);

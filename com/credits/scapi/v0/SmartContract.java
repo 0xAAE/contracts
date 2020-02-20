@@ -15,8 +15,20 @@ public class SmartContract {
     protected String contractAddress = "";
     private BigDecimal balance = BigDecimal.ZERO;
 
+    private String stack_initiator;
+
     public void test_setInitiator(String key_base58) {
         initiator = key_base58;
+    }
+
+    public void test_pushInitiator() {
+        stack_initiator = initiator;
+    }
+
+    public void test_popInitiator() {
+        if(!stack_initiator.isBlank()) {
+            initiator = stack_initiator;
+        }
     }
 
     public void test_setBalance(BigDecimal sum) {
