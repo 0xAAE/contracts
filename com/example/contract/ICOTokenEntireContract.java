@@ -44,6 +44,7 @@ public class ICOTokenEntireContract extends SmartContract implements ExtensionSt
         symbol = "OCIT";
         decimal = 0;
         totalCoins = new BigDecimal(1000000L).setScale(decimal, RoundingMode.FLOOR);
+        cost = new BigDecimal(2.0);
         //#endregion
 
         //#region Token initialization
@@ -57,7 +58,6 @@ public class ICOTokenEntireContract extends SmartContract implements ExtensionSt
 
         ///#region ICO initialization
         availForSale = ZERO;
-        cost = new BigDecimal(2.0);
         minPayment = BigDecimal.ONE;
         maxPayment = BigDecimal.valueOf(Long.MAX_VALUE);
         whiteList = new HashSet<String>();
@@ -208,6 +208,10 @@ public class ICOTokenEntireContract extends SmartContract implements ExtensionSt
         }
         totalCoins = totalCoins.subtract(decimalAmount);
         balances.put(owner, balances.get(owner).subtract(decimalAmount));
+        BigDecimal owners = balances.get(owner);
+        if(owners.compareTo(availForSale) < 0) {
+            availForSale = owners;
+        }
         return true;
     }
 
