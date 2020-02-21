@@ -11,7 +11,7 @@ public class SmartContract extends com.credits.scapi.v0.SmartContract {
 
     private long blockchainTimeMillis = 0;
 
-    public void test_setBlockchainTimeMills(long unix_msec) {
+    public void mock_setBlockchainTimeMills(long unix_msec) {
         blockchainTimeMillis = unix_msec;
     }
 

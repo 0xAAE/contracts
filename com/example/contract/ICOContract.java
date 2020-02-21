@@ -3,7 +3,7 @@ package com.example.contract;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import static java.math.BigDecimal.ZERO;
-
+import java.util.Date;
 import java.util.HashSet;
 import com.credits.scapi.v3.SmartContract;
 
@@ -13,7 +13,7 @@ public class ICOContract extends SmartContract {
 
     private ICOTokenContract token_instance = null;
 
-    public void test_setToken(ICOTokenContract inst) {
+    public void mock_setToken(ICOTokenContract inst) {
         if(token_instance != null) {
             throw new RuntimeException("token update is disabled");
         }
@@ -31,10 +31,10 @@ public class ICOContract extends SmartContract {
         }
         // boolean transfer(String to, String amount)
         else if(method.equals("transfer")) {
-            token_instance.test_pushInitiator();
-            token_instance.test_setInitiator(contractAddress);
+            token_instance.mock_pushInitiator();
+            token_instance.mock_setInitiator(contractAddress);
             boolean tmp = token_instance.transfer((String) params[0], (String) params[1]);
-            token_instance.test_popInitiator();
+            token_instance.mock_popInitiator();
             return tmp;
         }
         return null;
@@ -48,6 +48,8 @@ public class ICOContract extends SmartContract {
     protected BigDecimal minPayment;
     protected BigDecimal maxPayment;
     protected int decimal = -1;
+    private long expiration;
+    private boolean expired;
 
     protected HashSet<String> whiteList;
 
@@ -62,6 +64,8 @@ public class ICOContract extends SmartContract {
 
         whiteList = new HashSet<String>();
         owner = initiator;
+        expiration = 0;
+        expired = false;
     }
 
     public void addToWhiteList(String wallet) {
@@ -84,15 +88,29 @@ public class ICOContract extends SmartContract {
         whiteList.clear();
     }
 
-    public void updatePaymentLimits(String min, String max) {
+    public void startNewRound(String min, String max, long exp_unix_sec) {
         testOwner();
+        if(!expired) {
+            stopRound();
+        }
 
         BigDecimal vmin = toBigDecimal(min);
         BigDecimal vmax = toBigDecimal(max);
-        if(vmin != null && vmax != null) {
-            minPayment = vmin;
-            maxPayment = vmax;
+        if(vmin == null || vmax == null) {
+            String smin = "";
+            String smax = "";
+            if(vmin == null) {
+                smin = " min";
+            }
+            if(vmax == null) {
+                smax = " max";
+            }
+            throw new RuntimeException("incorrect parameters:" + smin + smax);
         }
+        expiration = exp_unix_sec * 1000;
+        expired = false;
+        minPayment = vmin;
+        maxPayment = vmax;
     }
 
     public String withdrawMax(BigDecimal sum) {
@@ -115,6 +133,8 @@ public class ICOContract extends SmartContract {
     }
 
     protected String payable(BigDecimal amount, byte[] userData) {
+        checkExpirationDate();
+        testExpired();
         testCost();
         testWhiteList();
 
@@ -166,6 +186,36 @@ public class ICOContract extends SmartContract {
         if(!isWhite(initiator)) {
             throw new RuntimeException("only whitelisted accounts are welcome");
         }
+    }
+
+    private void testExpired() {
+        if(expired) {
+            throw new RuntimeException("round is expired");
+        }
+    }
+
+    private boolean checkExpirationDate() {
+        if(!expired) {
+            if(expiration != 0) {
+                if(getBlockchainTimeMills() >= expiration) {
+                    stopRound();
+                }
+            }
+        }
+        return expired;
+    }
+
+    private void stopRound() {
+        if(expired) {
+            return;
+        }
+        String avail = getAvailTokens();
+        if(!avail.isBlank() && !avail.equals("0")) {
+            if(! (boolean) invokeExternalContract(token, "transfer", owner, avail) ) {
+                throw new RuntimeException("failed to transfer " + avail + " tokens to " + owner);
+            }
+        }
+        expired = true;
     }
 }
 

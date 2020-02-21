@@ -3,7 +3,7 @@ package com.credits.scapi.v0;
 import java.math.BigDecimal;
 
 public class SmartContract {
-    public static void test_setDeployer(String key_base58) {
+    public static void mock_setDeployer(String key_base58) {
         deployer = key_base58;
     }
 
@@ -17,30 +17,30 @@ public class SmartContract {
 
     private String stack_initiator;
 
-    public void test_setInitiator(String key_base58) {
+    public void mock_setInitiator(String key_base58) {
         initiator = key_base58;
     }
 
-    public void test_pushInitiator() {
+    public void mock_pushInitiator() {
         stack_initiator = initiator;
     }
 
-    public void test_popInitiator() {
+    public void mock_popInitiator() {
         if(!stack_initiator.isBlank()) {
             initiator = stack_initiator;
         }
     }
 
-    public void test_setBalance(BigDecimal sum) {
+    public void mock_setBalance(BigDecimal sum) {
         balance = sum;
     }
 
-    public void test_setAddress(String key_base58) {
+    public void mock_setAddress(String key_base58) {
         contractAddress = key_base58;
     }
 
-    public String test_replenish(String from_base58, BigDecimal sum, byte[] userData) {
-        test_setInitiator(from_base58);
+    public String mock_replenish(String from_base58, BigDecimal sum, byte[] userData) {
+        mock_setInitiator(from_base58);
         System.out.println("replenish contract by " + sum.toString());
         String result = payable(sum, userData);
         balance = balance.add(sum);
