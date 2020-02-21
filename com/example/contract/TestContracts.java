@@ -46,27 +46,81 @@ public class TestContracts
         ico.mock_setToken(token);
         ico.mock_setBlockchainTimeMills(feb20_ms);
 
-        // round-1: min 2CS, max 10000CS, expire feb21
+        // round-1: min 2CS, max 10000CS, expire feb21, 50000ICOT
         token.mock_setInitiator(pk_owner);
         ico.mock_setInitiator(pk_owner);
-        token.transfer(pk_service, "50000");
-        System.out.println(ico.getAvailTokens());
-        System.out.println(ico.getAvailTokensTotalCost());
+        System.out.println("no round");
+        System.out.println("avail " + ico.getAvailTokens() + " ICOT = " + ico.getAvailTokensTotalCost() + " CS");
+        System.out.println("start round-1: 2..10'000 until 21 feb");
         ico.startNewRound("2", "10000", feb21);
+        token.transfer(pk_service, "50000");
+        System.out.println("avail " + ico.getAvailTokens() + " ICOT = " + ico.getAvailTokensTotalCost() + " CS");
         ico.mock_setInitiator(pk_from);
+        try {
+            System.out.println(ico.payable(new BigDecimal(1.0), null));
+        } catch (RuntimeException x) {
+            System.out.println(x);
+        }
+        try {
+            System.out.println(ico.payable(new BigDecimal(11000.0), null));
+        } catch (RuntimeException x) {
+            System.out.println(x);
+        }
         System.out.println(ico.payable(new BigDecimal(5000.0), null));
-        System.out.println(ico.getAvailTokens());
-        System.out.println(ico.getAvailTokensTotalCost());
-        System.out.println(token.balanceOf(pk_owner));
-        System.out.println(token.balanceOf(pk_from));
-        System.out.println(token.balanceOf(pk_service));
+        System.out.println("avail " + ico.getAvailTokens() + " ICOT = " + ico.getAvailTokensTotalCost() + " CS");
+        System.out.println(pk_owner + ": " + token.balanceOf(pk_owner));
+        System.out.println(pk_from + ": " + token.balanceOf(pk_from));
+        System.out.println(pk_service + ": " + token.balanceOf(pk_service));
         ico.mock_setBlockchainTimeMills(feb21 * 1000);
-        System.out.println(ico.payable(new BigDecimal(5000.0), null));
-        System.out.println(ico.getAvailTokens());
-        System.out.println(ico.getAvailTokensTotalCost());
-        System.out.println(token.balanceOf(pk_owner));
-        System.out.println(token.balanceOf(pk_from));
-        System.out.println(token.balanceOf(pk_service));
+        try {
+            System.out.println(ico.payable(new BigDecimal(5000.0), null));
+        } catch (RuntimeException x) {
+            System.out.println(x);
+        }
+        System.out.println("avail " + ico.getAvailTokens() + " ICOT = " + ico.getAvailTokensTotalCost() + " CS");
+        System.out.println(pk_owner + ": " + token.balanceOf(pk_owner));
+        System.out.println(pk_from + ": " + token.balanceOf(pk_from));
+        System.out.println(pk_service + ": " + token.balanceOf(pk_service));
+
+        // round-2: min 5000CS max 40000CS, expire 22 feb, 100000 ICOT
+        System.out.println("start round-2: 5'000..40'000 until 22 feb");
+        try {
+            ico.startNewRound("5000", "40000", feb22);
+        } catch (RuntimeException x) {
+            System.out.println(x);
+        }
+        ico.mock_pushInitiator();
+        ico.mock_setInitiator(pk_owner);
+        ico.startNewRound("5000", "40000", feb22);
+        token.transfer(pk_service, "50000");
+        ico.mock_popInitiator();
+        System.out.println("avail " + ico.getAvailTokens() + " ICOT = " + ico.getAvailTokensTotalCost() + " CS");
+        try {
+            System.out.println(ico.payable(new BigDecimal(4000.0), null));
+        } catch (RuntimeException x) {
+            System.out.println(x);
+        }
+        try {
+            System.out.println(ico.payable(new BigDecimal(50000.0), null));
+        } catch (RuntimeException x) {
+            System.out.println(x);
+        }
+        System.out.println(ico.payable(new BigDecimal(10000.0), null));
+        System.out.println("avail " + ico.getAvailTokens() + " ICOT = " + ico.getAvailTokensTotalCost() + " CS");
+        System.out.println(pk_owner + ": " + token.balanceOf(pk_owner));
+        System.out.println(pk_from + ": " + token.balanceOf(pk_from));
+        System.out.println(pk_service + ": " + token.balanceOf(pk_service));
+        ico.mock_setBlockchainTimeMills(feb22 * 1000);
+        try {
+            System.out.println(ico.payable(new BigDecimal(10000.0), null));
+        } catch (RuntimeException x) {
+            System.out.println(x);
+        }
+        System.out.println("avail " + ico.getAvailTokens() + " ICOT = " + ico.getAvailTokensTotalCost() + " CS");
+        System.out.println(pk_owner + ": " + token.balanceOf(pk_owner));
+        System.out.println(pk_from + ": " + token.balanceOf(pk_from));
+        System.out.println(pk_service + ": " + token.balanceOf(pk_service));
+
     }
 
     private static void testOCIContract() {

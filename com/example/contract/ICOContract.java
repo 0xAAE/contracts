@@ -138,6 +138,13 @@ public class ICOContract extends SmartContract {
         testCost();
         testWhiteList();
 
+        if(minPayment.compareTo(amount) > 0) {
+            throw new RuntimeException("min payment is " + minPayment);
+        }
+        if(maxPayment.compareTo(amount) < 0) {
+            throw new RuntimeException("max payment is " + maxPayment);
+        }
+
         BigDecimal requested = amount.divide(cost);
         BigDecimal total = toBigDecimal((String) invokeExternalContract(token, "balanceOf", contractAddress));
         if(total.compareTo(requested) < 0) {
