@@ -21,17 +21,249 @@ public class TestContracts
 
     public static void main(String args[]) {
 
-        System.out.println("\ntest EscrowContract\n");
-        testEscrowContract();
-        System.out.println("\nok\n");
+        System.out.println("\nskip EscrowContract\n");
+        // testEscrowContract();
+        // System.out.println("\nok\n");
 
-        System.out.println("\ntest ICOTokenContract\n");
-        testOCIContract();
-        System.out.println("\nok\n");
+        System.out.println("\nskip ICOTokenContract\n");
+        // testICOTokenContract();
+        // System.out.println("\nok\n");
 
-        System.out.println("\ntest ICOContract\n");
-        testICOContract();
+        System.out.println("\nskip ICOContract\n");
+        // testICOContract();
+        // System.out.println("\nok\n");
+
+        System.out.println("\ntest ICOTokenEntireContract\n");
+        testICOTokenEntireContract();
         System.out.println("\nok\n");
+    }
+
+    private static void testICOTokenEntireContract() {
+        ICOTokenEntireContract.mock_setDeployer(pk_owner);
+        ICOTokenEntireContract ico_token = new ICOTokenEntireContract();
+        ico_token.mock_setAddress(pk_address);
+        ico_token.mock_setBlockchainTimeMills(new Date().getTime());
+
+        //#region ICO testing
+
+        ico_token.mock_setBlockchainTimeMills(feb20 * 1000);
+        // round-1: min 2CS, max 10000CS, expire feb21, 50000ICOT
+        ico_token.mock_setInitiator(pk_owner);
+        System.out.println("no round");
+        System.out.println("avail " + ico_token.getAvailTokens() + " ICOT = " + ico_token.getAvailTokensTotalCost() + " CS");
+        System.out.println("start round-1: 2..10'000 until 21 feb, avail 50K");
+        ico_token.startNewRound("50000", "2", "10000", feb21);
+        System.out.println("avail " + ico_token.getAvailTokens() + " ICOT = " + ico_token.getAvailTokensTotalCost() + " CS");
+        ico_token.mock_setInitiator(pk_from);
+        try {
+            System.out.println(ico_token.payable(new BigDecimal(1.0), null));
+        } catch (RuntimeException x) {
+            System.out.println(x);
+        }
+        try {
+            System.out.println(ico_token.payable(new BigDecimal(11000.0), null));
+        } catch (RuntimeException x) {
+            System.out.println(x);
+        }
+        System.out.println(ico_token.payable(new BigDecimal(5000.0), null));
+        System.out.println("avail " + ico_token.getAvailTokens() + " ICOT = " + ico_token.getAvailTokensTotalCost() + " CS");
+        System.out.println(pk_owner + ": " + ico_token.balanceOf(pk_owner));
+        System.out.println(pk_from + ": " + ico_token.balanceOf(pk_from));
+        System.out.println(pk_service + ": " + ico_token.balanceOf(pk_service));
+        ico_token.mock_setBlockchainTimeMills(feb21 * 1000);
+        try {
+            System.out.println(ico_token.payable(new BigDecimal(5000.0), null));
+        } catch (RuntimeException x) {
+            System.out.println(x);
+        }
+        System.out.println("avail " + ico_token.getAvailTokens() + " ICOT = " + ico_token.getAvailTokensTotalCost() + " CS");
+        System.out.println(pk_owner + ": " + ico_token.balanceOf(pk_owner));
+        System.out.println(pk_from + ": " + ico_token.balanceOf(pk_from));
+        System.out.println(pk_service + ": " + ico_token.balanceOf(pk_service));
+
+        // round-2: min 5000CS max 40000CS, expire 22 feb, 100000 ICOT
+        System.out.println("start round-2: 5'000..40'000 until 22 feb, avail 50K");
+        try {
+            ico_token.startNewRound("50000", "5000", "40000", feb22);
+        } catch (RuntimeException x) {
+            System.out.println(x);
+        }
+        ico_token.mock_pushInitiator();
+        ico_token.mock_setInitiator(pk_owner);
+        ico_token.startNewRound("50000", "5000", "40000", feb22);
+        ico_token.mock_popInitiator();
+        System.out.println("avail " + ico_token.getAvailTokens() + " ICOT = " + ico_token.getAvailTokensTotalCost() + " CS");
+        try {
+            System.out.println(ico_token.payable(new BigDecimal(4000.0), null));
+        } catch (RuntimeException x) {
+            System.out.println(x);
+        }
+        try {
+            System.out.println(ico_token.payable(new BigDecimal(50000.0), null));
+        } catch (RuntimeException x) {
+            System.out.println(x);
+        }
+        System.out.println(ico_token.payable(new BigDecimal(10000.0), null));
+        System.out.println("avail " + ico_token.getAvailTokens() + " ICOT = " + ico_token.getAvailTokensTotalCost() + " CS");
+        System.out.println(pk_owner + ": " + ico_token.balanceOf(pk_owner));
+        System.out.println(pk_from + ": " + ico_token.balanceOf(pk_from));
+        System.out.println(pk_service + ": " + ico_token.balanceOf(pk_service));
+        ico_token.mock_setBlockchainTimeMills(feb22 * 1000);
+        try {
+            System.out.println(ico_token.payable(new BigDecimal(10000.0), null));
+        } catch (RuntimeException x) {
+            System.out.println(x);
+        }
+        System.out.println("avail " + ico_token.getAvailTokens() + " ICOT = " + ico_token.getAvailTokensTotalCost() + " CS");
+        System.out.println(pk_owner + ": " + ico_token.balanceOf(pk_owner));
+        System.out.println(pk_from + ": " + ico_token.balanceOf(pk_from));
+        System.out.println(pk_service + ": " + ico_token.balanceOf(pk_service));
+
+        //#endregion ICO testing
+
+        //#region Token testing
+
+        // isAccountFrozen() / getAccountDefrostDate() / defrostAccount() / freezeAccount()
+        // owner == initiator
+        ico_token.mock_setInitiator(pk_owner);
+        System.out.println(ico_token.isAccountFrozen(pk_service));
+        System.out.println(ico_token.getAccountDefrostDate(pk_service));
+        ico_token.freezeAccount(pk_service, feb21);
+        System.out.println(ico_token.isAccountFrozen(pk_service));
+        System.out.println(ico_token.getAccountDefrostDate(pk_service));
+        ico_token.defrostAccount(pk_service);
+        System.out.println(ico_token.isAccountFrozen(pk_service));
+        System.out.println(ico_token.getAccountDefrostDate(pk_service));
+        // autodefrost
+        ico_token.freezeAccount(pk_service, feb19);
+        System.out.println(ico_token.getAccountDefrostDate(pk_service));
+        System.out.println(ico_token.isAccountFrozen(pk_service));
+        System.out.println(ico_token.getAccountDefrostDate(pk_service));
+
+        // initiator != owner
+        ico_token.mock_setInitiator(pk_from);
+        System.out.println(ico_token.isAccountFrozen(pk_service));
+        System.out.println(ico_token.getAccountDefrostDate(pk_service));
+        try{
+            ico_token.freezeAccount(pk_service, feb21);
+        } catch(RuntimeException x) {
+            System.out.println(x);
+        }
+        System.out.println(ico_token.isAccountFrozen(pk_service));
+        System.out.println(ico_token.getAccountDefrostDate(pk_service));
+        try {
+            ico_token.defrostAccount(pk_service);
+        } catch(RuntimeException x) {
+            System.out.println(x);
+        }
+        System.out.println(ico_token.isAccountFrozen(pk_service));
+        System.out.println(ico_token.getAccountDefrostDate(pk_service));
+        // autodefrost
+        ico_token.mock_setInitiator(pk_owner);
+        ico_token.freezeAccount(pk_service, feb19);
+        ico_token.mock_setInitiator(pk_from);
+        System.out.println(ico_token.getAccountDefrostDate(pk_service));
+        try {
+            System.out.println(ico_token.isAccountFrozen(pk_service));
+        } catch(RuntimeException x) {
+            System.out.println(x);
+        }
+        System.out.println(ico_token.getAccountDefrostDate(pk_service));
+
+        // pk_service still is frozen
+        ico_token.mock_setInitiator(pk_owner);
+        // now is not
+        System.out.println(ico_token.isAccountFrozen(pk_service));
+
+        // disabled methods
+        try {
+            ico_token.payable(new BigDecimal(1.0), null);
+        }
+        catch(RuntimeException x) {
+            System.out.println(x);
+        }
+        try {
+            ico_token.buyTokens("2");
+        }
+        catch(RuntimeException x) {
+            System.out.println(x);
+        }
+
+        // getters
+        System.out.println(ico_token.getDecimal());
+        System.out.println(ico_token.getName());
+        System.out.println(ico_token.getSymbol());
+        System.out.println(ico_token.totalSupply());
+        System.out.println(ico_token.balanceOf(pk_owner));
+        System.out.println(ico_token.balanceOf(pk_from));
+        System.out.println(ico_token.balanceOf(pk_service));
+        System.out.println(ico_token.allowance(pk_owner, pk_service));
+
+        // scenario-1 (transfers)
+        ico_token.mock_setInitiator(pk_owner);
+        ico_token.transfer(pk_owner, "1000");
+        System.out.println(ico_token.balanceOf(pk_owner));
+        ico_token.transfer(pk_from, "1000");
+        System.out.println(ico_token.balanceOf(pk_owner));
+        System.out.println(ico_token.balanceOf(pk_from));
+        ico_token.mock_setInitiator(pk_from);
+        ico_token.approve(pk_service, "50");
+        ico_token.mock_setInitiator(pk_service);
+        try {
+            ico_token.transferFrom(pk_owner, pk_to, "40");
+        } catch(RuntimeException x) {
+            System.out.println(x);
+        }
+        try {
+            ico_token.transferFrom(pk_from, pk_to, "60");
+        } catch(RuntimeException x) {
+            System.out.println(x);
+        }
+        ico_token.transferFrom(pk_from, pk_to, "49");
+        try {
+            ico_token.transferFrom(pk_from, pk_to, "2");
+        } catch(RuntimeException x) {
+            System.out.println(x);
+        }
+        ico_token.transferFrom(pk_from, pk_to, "1");
+        ico_token.mock_setInitiator(pk_to);
+        ico_token.transfer(pk_from, "50");
+        ico_token.mock_setInitiator(pk_from);
+        ico_token.transfer(pk_owner, "1000");
+        System.out.println(ico_token.balanceOf(pk_owner));
+        System.out.println(ico_token.balanceOf(pk_from));
+        System.out.println(ico_token.balanceOf(pk_service));
+        System.out.println(ico_token.balanceOf(pk_to));
+
+        // scenario-2 (burns)
+        ico_token.mock_setInitiator(pk_owner);
+        ico_token.transfer(pk_from, "1000");
+        System.out.println(ico_token.totalSupply());
+        System.out.println(ico_token.balanceOf(pk_owner));
+        System.out.println(ico_token.balanceOf(pk_from));
+        try {
+            ico_token.burn(ico_token.totalSupply());
+        } catch(RuntimeException x) {
+            System.out.println(x);
+        }
+        ico_token.burn("1000");
+        System.out.println(ico_token.totalSupply());
+        System.out.println(ico_token.balanceOf(pk_owner));
+        System.out.println(ico_token.balanceOf(pk_from));
+        ico_token.burn("980000");
+        System.out.println(ico_token.totalSupply());
+        System.out.println(ico_token.balanceOf(pk_owner));
+        System.out.println(ico_token.balanceOf(pk_from));
+        ico_token.burn("2000");
+        System.out.println(ico_token.totalSupply());
+        System.out.println(ico_token.balanceOf(pk_owner));
+        System.out.println(ico_token.balanceOf(pk_from));
+        ico_token.burn(ico_token.getBurnAvail());
+        System.out.println(ico_token.totalSupply());
+        System.out.println(ico_token.balanceOf(pk_owner));
+        System.out.println(ico_token.balanceOf(pk_from));
+
+        //#endregion Token testing
     }
 
     private static void testICOContract() {
@@ -120,10 +352,9 @@ public class TestContracts
         System.out.println(pk_owner + ": " + token.balanceOf(pk_owner));
         System.out.println(pk_from + ": " + token.balanceOf(pk_from));
         System.out.println(pk_service + ": " + token.balanceOf(pk_service));
-
     }
 
-    private static void testOCIContract() {
+    private static void testICOTokenContract() {
         ICOTokenContract.mock_setDeployer(pk_owner);
         ICOTokenContract token = new ICOTokenContract();
         token.mock_setAddress(pk_address);
