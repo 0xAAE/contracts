@@ -2,9 +2,9 @@ package com.example.contract;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import static java.math.BigDecimal.ZERO;
-import java.util.Date;
 import java.util.HashSet;
+import static java.math.BigDecimal.ZERO;
+
 import com.credits.scapi.v3.SmartContract;
 
 public class ICOContract extends SmartContract {
@@ -225,4 +225,3 @@ public class ICOContract extends SmartContract {
         expired = true;
     }
 }
-

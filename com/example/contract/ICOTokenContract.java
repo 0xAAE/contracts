@@ -6,11 +6,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Date;
 import java.text.SimpleDateFormat;
+import static java.math.BigDecimal.ZERO;
 
 import com.credits.scapi.v3.SmartContract;
 import com.credits.scapi.v0.ExtensionStandard;
-
-import static java.math.BigDecimal.ZERO;
 
 public class ICOTokenContract extends SmartContract implements ExtensionStandard {
 
