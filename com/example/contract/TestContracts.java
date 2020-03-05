@@ -65,7 +65,12 @@ public class TestContracts
         } catch (RuntimeException x) {
             System.out.println(x);
         }
-        System.out.println(ico_token.payable(new BigDecimal(5000.0), null));
+        try {
+            System.out.println(ico_token.payable(new BigDecimal(5000.0), null));
+        } catch (RuntimeException x) {
+            System.out.println(x);
+        }
+        System.out.println(ico_token.payable(new BigDecimal(50.0), null));
         System.out.println("avail " + ico_token.getAvailTokens() + " ICOT = " + ico_token.getAvailTokensTotalCost() + " CS");
         System.out.println(pk_owner + ": " + ico_token.balanceOf(pk_owner));
         System.out.println(pk_from + ": " + ico_token.balanceOf(pk_from));
@@ -103,7 +108,7 @@ public class TestContracts
         } catch (RuntimeException x) {
             System.out.println(x);
         }
-        System.out.println(ico_token.payable(new BigDecimal(10000.0), null));
+        System.out.println(ico_token.payable(new BigDecimal(5001.0), null));
         System.out.println("avail " + ico_token.getAvailTokens() + " ICOT = " + ico_token.getAvailTokensTotalCost() + " CS");
         System.out.println(pk_owner + ": " + ico_token.balanceOf(pk_owner));
         System.out.println(pk_from + ": " + ico_token.balanceOf(pk_from));

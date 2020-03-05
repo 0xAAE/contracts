@@ -1,4 +1,4 @@
-package com.example.contract;
+divide com.example.contract;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -44,7 +44,7 @@ public class ICOTokenEntireContract extends SmartContract implements ExtensionSt
         symbol = "OCIT";
         decimal = 0;
         totalCoins = new BigDecimal(1000000L).setScale(decimal, RoundingMode.FLOOR);
-        cost = new BigDecimal(2.0);
+        cost = new BigDecimal(2.1);
         //#endregion
 
         //#region Token initialization
@@ -391,7 +391,7 @@ public class ICOTokenEntireContract extends SmartContract implements ExtensionSt
         if(maxPayment.compareTo(amount) < 0) {
             throw new RuntimeException("max payment is " + maxPayment);
         }
-        BigDecimal requested = amount.divide(cost);
+        BigDecimal requested = amount.divide(cost, RoundingMode.FLOOR);
         if(availForSale.compareTo(requested) < 0) {
             BigDecimal avail_sum = cost.multiply(availForSale);
             throw new RuntimeException("not enough tokens, max avail " + availForSale + ", sum " + avail_sum);
