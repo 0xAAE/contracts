@@ -2,7 +2,7 @@ package com.credits.scapi.v0;
 
 import java.math.BigDecimal;
 
-public class SmartContract {
+public abstract class SmartContract extends com.credits.scapi.internal.v0.SmartContractApi {
     public static void mock_setDeployer(String key_base58) {
         deployer = key_base58;
     }

@@ -1,6 +1,6 @@
 package com.example.contract;
 
-import com.credits.scapi.v0.*;
+import com.credits.scapi.v3.*;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 

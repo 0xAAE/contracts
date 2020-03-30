@@ -213,6 +213,11 @@ public class StableCoinTokenContract extends SmartContract implements ExtensionS
     }
 
     @Override
+    public String payable(BigDecimal amount, byte [] data) {
+        throw new RuntimeException("unsupported method: obsolete");
+    }
+
+    @Override
     public boolean buyTokens(String amount) {
         throw new RuntimeException("unsupported operation: buy tokens");
     }
