@@ -1,4 +1,4 @@
-divide com.example.contract;
+package com.example.contract;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
