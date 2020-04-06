@@ -727,6 +727,8 @@ public class TestContracts
         System.out.println("owner: " + token.balanceOf(pk_owner));
         System.out.println("to: " + token.balanceOf(pk_to));
         token.mock_setInitiator(pk_owner);
+
+        //token.setFrozen(true);
     }
 
     private static void testEscrowContract() {
