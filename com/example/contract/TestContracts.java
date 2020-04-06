@@ -687,6 +687,46 @@ public class TestContracts
         System.out.println("from frozen date: " + token.getFrozenSumDate(pk_from));
         System.out.println("from frozen sum: " + token.getFrozenSumValue(pk_from));
         token.mock_popInitiator();
+
+        // freeze account test
+
+        token.mock_setBlockchainTimeMills(feb20_ms);
+        token.transfer(pk_to, "1000");
+        System.out.println("owner: " + token.balanceOf(pk_owner));
+        System.out.println("to: " + token.balanceOf(pk_to));
+        token.mock_setInitiator(pk_to);
+        token.transfer(pk_owner, "100");
+        System.out.println("owner: " + token.balanceOf(pk_owner));
+        System.out.println("to: " + token.balanceOf(pk_to));
+        token.mock_setInitiator(pk_owner);
+        token.freezeAccount(pk_to, feb21);
+        System.out.println("to frozen status: " + token.isAccountFrozen(pk_to) + ", " + token.getAccountDefrostDate(pk_to));
+        token.mock_setInitiator(pk_to);
+        try {
+            token.transfer(pk_owner, "100");
+        }
+        catch(RuntimeException x) {
+            System.out.println(x);
+        }
+        token.mock_setInitiator(pk_owner);
+        token.defrostAccount(pk_to);
+        token.mock_setInitiator(pk_to);
+        token.transfer(pk_owner, "100");
+        System.out.println("owner: " + token.balanceOf(pk_owner));
+        System.out.println("to: " + token.balanceOf(pk_to));
+        token.mock_setInitiator(pk_owner);
+        token.freezeAccount(pk_to, feb21);
+        token.mock_setBlockchainTimeMills(feb23 * 1000);
+        token.mock_setInitiator(pk_to);
+        token.transfer(pk_owner, "100");
+        System.out.println("owner: " + token.balanceOf(pk_owner));
+        System.out.println("to: " + token.balanceOf(pk_to));
+        System.out.println("to frozen status: " + token.isAccountFrozen(pk_to) + ", " + token.getAccountDefrostDate(pk_to));
+        token.updateFrozenTokens();
+        token.transfer(pk_owner, token.balanceOf(pk_to));
+        System.out.println("owner: " + token.balanceOf(pk_owner));
+        System.out.println("to: " + token.balanceOf(pk_to));
+        token.mock_setInitiator(pk_owner);
     }
 
     private static void testEscrowContract() {

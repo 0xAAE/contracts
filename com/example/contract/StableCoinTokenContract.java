@@ -5,6 +5,7 @@ import java.math.RoundingMode;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Date;
+import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import static java.math.BigDecimal.ZERO;
 
@@ -24,7 +25,7 @@ public class StableCoinTokenContract extends SmartContract implements ExtensionS
 	private HashMap<String, Date> frozenAccounts;
 	private HashMap<String, PartialFreeze> frozenSums;
 
-	class PartialFreeze {
+	class PartialFreeze implements Serializable {
 		long until;
 		BigDecimal sum;
 
@@ -276,9 +277,6 @@ public class StableCoinTokenContract extends SmartContract implements ExtensionS
         }
         Date now = new Date(getBlockchainTimeMills());
         if(frozenAccounts.get(account).before(now)) {
-            if(!isOwner()) {
-                throw new RuntimeException("only contract owner may defrost account");
-            }
             frozenAccounts.remove(account);
             return false;
         }
