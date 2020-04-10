@@ -40,15 +40,12 @@ public class TestContracts
         System.out.println("\ntest StableCoinTokenContract\n");
         //testStableCoinTokenContract();
         //System.out.println("\nok\n");
-
-        System.out.println("\ntest StableCoinSharedTokenContract\n");
-        testStableCoinSharedTokenContract();
-        System.out.println("\nok\n");
     }
 
     private static void testICOTokenEntireContract() {
-        ICOTokenEntireContract.mock_setDeployer(pk_owner);
+        ICOTokenEntireContract.mock_letBeDeployer(pk_owner);
         ICOTokenEntireContract ico_token = new ICOTokenEntireContract();
+        ico_token.mock_setInitiator(pk_owner);
         ico_token.mock_setAddress(pk_address);
         ico_token.mock_setBlockchainTimeMills(new Date().getTime());
 
@@ -280,13 +277,15 @@ public class TestContracts
     }
 
     private static void testICOContract() {
-        ICOTokenContract.mock_setDeployer(pk_owner);
+        ICOTokenContract.mock_letBeDeployer(pk_owner);
         ICOTokenContract token = new ICOTokenContract();
+        token.mock_setInitiator(pk_owner);
         token.mock_setAddress(pk_address);
         token.mock_setBlockchainTimeMills(feb20_ms);
 
-        ICOContract.mock_setDeployer(pk_owner);
+        ICOContract.mock_letBeDeployer(pk_owner);
         ICOContract ico = new ICOContract();
+        ico.mock_setInitiator(pk_owner);
         ico.mock_setAddress(pk_service);
         ico.mock_setToken(token);
         ico.mock_setBlockchainTimeMills(feb20_ms);
@@ -368,8 +367,9 @@ public class TestContracts
     }
 
     private static void testICOTokenContract() {
-        ICOTokenContract.mock_setDeployer(pk_owner);
+        ICOTokenContract.mock_letBeDeployer(pk_owner);
         ICOTokenContract token = new ICOTokenContract();
+        token.mock_setInitiator(pk_owner);
         token.mock_setAddress(pk_address);
         token.mock_setBlockchainTimeMills(new Date().getTime());
 
@@ -514,8 +514,9 @@ public class TestContracts
     }
 
     private static void testStableCoinTokenContract() {
-        StableCoinTokenContract.mock_setDeployer(pk_owner);
+        StableCoinTokenContract.mock_letBeDeployer(pk_owner);
         StableCoinTokenContract token = new StableCoinTokenContract();
+        token.mock_setInitiator(pk_owner);
         token.mock_setAddress(pk_address);
         token.mock_setBlockchainTimeMills(feb20_ms);
 
@@ -743,8 +744,9 @@ public class TestContracts
         final int unix_sec = 1579871500;
         final BigDecimal deposit_sum = new BigDecimal(1000.0);
 
-        SmartContract.mock_setDeployer(pk_admin);
+        EscrowContract.mock_letBeDeployer(pk_admin);
         EscrowContract contract = new EscrowContract();
+        contract.mock_setInitiator(pk_admin);
         contract.mock_setAddress(pk_address);
         //contract.mock_setInitiator(pk_deponent);
         System.out.println(contract.mock_replenish(pk_deponent, deposit_sum, null));
@@ -756,314 +758,5 @@ public class TestContracts
         System.out.println(contract.tryWithdraw());
         contract.mock_setBlockchainTimeMills((long)(unix_sec + 1001) * 1000);
         System.out.println(contract.tryWithdraw());
-    }
-
-    private static void testStableCoinSharedTokenContract() {
-        StableCoinTokenContract.mock_setDeployer(pk_owner);
-        StableCoinSharedTokenContract token = new StableCoinSharedTokenContract();
-        token.mock_setAddress(pk_address);
-        token.mock_setBlockchainTimeMills(feb20_ms);
-
-        // isAccountFrozen() / getAccountDefrostDate() / defrostAccount() / freezeAccount()
-        // owner == initiator
-        System.out.println(token.isAccountFrozen(pk_service));
-        System.out.println(token.getAccountDefrostDate(pk_service));
-        token.freezeAccount(pk_service, feb21);
-        System.out.println(token.isAccountFrozen(pk_service));
-        System.out.println(token.getAccountDefrostDate(pk_service));
-        token.defrostAccount(pk_service);
-        System.out.println(token.isAccountFrozen(pk_service));
-        System.out.println(token.getAccountDefrostDate(pk_service));
-        // autodefrost
-        token.freezeAccount(pk_service, feb19);
-        System.out.println(token.getAccountDefrostDate(pk_service));
-        System.out.println(token.isAccountFrozen(pk_service));
-        System.out.println(token.getAccountDefrostDate(pk_service));
-
-        // initiator != owner
-        token.mock_setInitiator(pk_from);
-        System.out.println(token.isAccountFrozen(pk_service));
-        System.out.println(token.getAccountDefrostDate(pk_service));
-        try{
-            token.freezeAccount(pk_service, feb21);
-        } catch(RuntimeException x) {
-            System.out.println(x);
-        }
-        System.out.println(token.isAccountFrozen(pk_service));
-        System.out.println(token.getAccountDefrostDate(pk_service));
-        try {
-            token.defrostAccount(pk_service);
-        } catch(RuntimeException x) {
-            System.out.println(x);
-        }
-        System.out.println(token.isAccountFrozen(pk_service));
-        System.out.println(token.getAccountDefrostDate(pk_service));
-        // autodefrost
-        token.mock_setInitiator(pk_owner);
-        token.freezeAccount(pk_service, feb19);
-        token.mock_setInitiator(pk_from);
-        System.out.println(token.getAccountDefrostDate(pk_service));
-        try {
-            System.out.println(token.isAccountFrozen(pk_service));
-        } catch(RuntimeException x) {
-            System.out.println(x);
-        }
-        System.out.println(token.getAccountDefrostDate(pk_service));
-
-        // pk_service still is frozen
-        token.mock_setInitiator(pk_owner);
-        // now is not
-        System.out.println(token.isAccountFrozen(pk_service));
-
-        // disabled methods
-        try {
-            token.payable("1.0", "1");
-        }
-        catch(RuntimeException x) {
-            System.out.println(x);
-        }
-        try {
-            token.buyTokens("2");
-        }
-        catch(RuntimeException x) {
-            System.out.println(x);
-        }
-
-        // getters
-        System.out.println(token.getDecimal());
-        System.out.println(token.getName());
-        System.out.println(token.getSymbol());
-        System.out.println(token.totalSupply());
-        System.out.println("owner: " + token.balanceOf(pk_owner));
-        System.out.println("from: " + token.balanceOf(pk_from));
-        System.out.println("service: " + token.balanceOf(pk_service));
-        System.out.println("owner -> service: " + token.allowance(pk_owner, pk_service));
-
-        // scenario-1 (transfers)
-        token.mock_setInitiator(pk_owner);
-        token.transfer(pk_owner, "1000");
-        System.out.println("owner: " + token.balanceOf(pk_owner));
-        token.transfer(pk_from, "1000");
-        System.out.println("owner: " + token.balanceOf(pk_owner));
-        System.out.println("from: " + token.balanceOf(pk_from));
-        token.mock_setInitiator(pk_from);
-        token.approve(pk_service, "50");
-        token.mock_setInitiator(pk_service);
-        try {
-            token.transferFrom(pk_owner, pk_to, "40");
-        } catch(RuntimeException x) {
-            System.out.println(x);
-        }
-        try {
-            token.transferFrom(pk_from, pk_to, "60");
-        } catch(RuntimeException x) {
-            System.out.println(x);
-        }
-        token.transferFrom(pk_from, pk_to, "49");
-        try {
-            token.transferFrom(pk_from, pk_to, "2");
-        } catch(RuntimeException x) {
-            System.out.println(x);
-        }
-        token.transferFrom(pk_from, pk_to, "1");
-        token.mock_setInitiator(pk_to);
-        token.transfer(pk_from, "50");
-        token.mock_setInitiator(pk_from);
-        token.transfer(pk_owner, "1000");
-        System.out.println("owner: " + token.balanceOf(pk_owner));
-        System.out.println("from: " + token.balanceOf(pk_from));
-        System.out.println("service: " + token.balanceOf(pk_service));
-        System.out.println("to: " + token.balanceOf(pk_to));
-
-        // scenario-2 (burns)
-        token.mock_setInitiator(pk_owner);
-        token.transfer(pk_from, "1000");
-        System.out.println("total: " + token.totalSupply());
-        System.out.println("owner: " + token.balanceOf(pk_owner));
-        System.out.println("from: " + token.balanceOf(pk_from));
-        try {
-            token.burn(token.totalSupply());
-        } catch(RuntimeException x) {
-            System.out.println(x);
-        }
-        token.burn("1000");
-        System.out.println("total: " + token.totalSupply());
-        System.out.println("owner: " + token.balanceOf(pk_owner));
-        System.out.println("from: " + token.balanceOf(pk_from));
-        token.burn("980000");
-        System.out.println("total: " + token.totalSupply());
-        System.out.println("owner: " + token.balanceOf(pk_owner));
-        System.out.println("from: " + token.balanceOf(pk_from));
-        token.burn("2000");
-        System.out.println("total: " + token.totalSupply());
-        System.out.println("owner: " + token.balanceOf(pk_owner));
-        System.out.println("from: " + token.balanceOf(pk_from));
-        token.burn(token.getBurnAvail());
-        System.out.println("total: " + token.totalSupply());
-        System.out.println("owner: " + token.balanceOf(pk_owner));
-        System.out.println("from: " + token.balanceOf(pk_from));
-
-        // emit test
-
-        token.emit("2000");
-        System.out.println("total: " + token.totalSupply());
-        System.out.println("owner: " + token.balanceOf(pk_owner));
-        System.out.println("from: " + token.balanceOf(pk_from));
-
-        // partially frozen sum test
-
-        token.freezeSum(pk_from, feb21, "700");
-        System.out.println("from frozen date: " + token.getFrozenSumDate(pk_from));
-        System.out.println("from frozen sum: " + token.getFrozenSumValue(pk_from));
-        token.mock_pushInitiator();
-        token.mock_setInitiator(pk_from);
-        try {
-            token.transfer(pk_owner, "900");
-        }
-        catch(RuntimeException x) {
-            System.out.println(x);
-        }
-        token.transfer(pk_owner, "100");
-        System.out.println("owner: " + token.balanceOf(pk_owner));
-        System.out.println("from: " + token.balanceOf(pk_from));
-        token.mock_setBlockchainTimeMills(feb22 * 1000);
-        token.transfer(pk_owner, "900");
-        System.out.println("owner: " + token.balanceOf(pk_owner));
-        System.out.println("from: " + token.balanceOf(pk_from));
-        System.out.println("from frozen date: " + token.getFrozenSumDate(pk_from));
-        System.out.println("from frozen sum: " + token.getFrozenSumValue(pk_from));
-        token.optimizeFrozenTokens();
-        System.out.println("from frozen date: " + token.getFrozenSumDate(pk_from));
-        System.out.println("from frozen sum: " + token.getFrozenSumValue(pk_from));
-        token.mock_popInitiator();
-
-        // freeze account test
-
-        token.mock_setBlockchainTimeMills(feb20_ms);
-        token.transfer(pk_to, "1000");
-        System.out.println("owner: " + token.balanceOf(pk_owner));
-        System.out.println("to: " + token.balanceOf(pk_to));
-        token.mock_setInitiator(pk_to);
-        token.transfer(pk_owner, "100");
-        System.out.println("owner: " + token.balanceOf(pk_owner));
-        System.out.println("to: " + token.balanceOf(pk_to));
-        token.mock_setInitiator(pk_owner);
-        token.freezeAccount(pk_to, feb21);
-        System.out.println("to frozen status: " + token.isAccountFrozen(pk_to) + ", " + token.getAccountDefrostDate(pk_to));
-        token.mock_setInitiator(pk_to);
-        try {
-            token.transfer(pk_owner, "100");
-        }
-        catch(RuntimeException x) {
-            System.out.println(x);
-        }
-        token.mock_setInitiator(pk_owner);
-        token.defrostAccount(pk_to);
-        token.mock_setInitiator(pk_to);
-        token.transfer(pk_owner, "100");
-        System.out.println("owner: " + token.balanceOf(pk_owner));
-        System.out.println("to: " + token.balanceOf(pk_to));
-        token.mock_setInitiator(pk_owner);
-        token.freezeAccount(pk_to, feb21);
-        token.mock_setBlockchainTimeMills(feb23 * 1000);
-        token.mock_setInitiator(pk_to);
-        token.transfer(pk_owner, "100");
-        System.out.println("owner: " + token.balanceOf(pk_owner));
-        System.out.println("to: " + token.balanceOf(pk_to));
-        System.out.println("to frozen status: " + token.isAccountFrozen(pk_to) + ", " + token.getAccountDefrostDate(pk_to));
-        token.optimizeFrozenTokens();
-        token.transfer(pk_owner, token.balanceOf(pk_to));
-        System.out.println("owner: " + token.balanceOf(pk_owner));
-        System.out.println("to: " + token.balanceOf(pk_to));
-
-        // shared emission burning
-
-        // вызывает owner
-        token.mock_setInitiator(pk_owner);
-        // перевести на to и на from по 1000
-        token.transfer(pk_to, "1000");
-        token.transfer(pk_from, "1000");
-        // вызывает service
-        token.mock_setInitiator(pk_service);
-        try {
-            // дать право самому себе выпускать токены
-            token.permitEmit(pk_service, true);
-        }
-        catch(RuntimeException x) {
-            System.out.println(x);
-        }
-        try {
-            // дать право самому себе сжигать токены
-            token.permitBurnBy(pk_service, true);
-        }
-        catch(RuntimeException x) {
-            System.out.println(x);
-        }
-        try {
-            // дать право другим сжигать токены на самом себе
-            token.permitBurnOn(pk_to, true);
-        }
-        catch(RuntimeException x) {
-            System.out.println(x);
-        }
-        // вызывает owner
-        token.mock_setInitiator(pk_owner);
-        // дать право service сжигать токены
-        token.permitBurnBy(pk_service, true);
-        // разрешить на to сжигать токены
-        token.permitBurnOn(pk_to, true);
-        // разрешить service выпускать токены
-        token.permitEmit(pk_service, true);
-
-        System.out.println("owner: " + token.balanceOf(pk_owner));
-        System.out.println("service: " + token.balanceOf(pk_service));
-        System.out.println("from: " + token.balanceOf(pk_from));
-        System.out.println("to: " + token.balanceOf(pk_to));
-        System.out.println("total: " + token.totalSupply());
-
-        // вызывает service
-        token.mock_setInitiator(pk_service);
-        // добавить себе 1000
-        token.emitSelf("1000");
-        // сжечь на to 500
-        token.burnOn(pk_to, "500");
-
-        System.out.println("owner: " + token.balanceOf(pk_owner));
-        System.out.println("service: " + token.balanceOf(pk_service));
-        System.out.println("from: " + token.balanceOf(pk_from));
-        System.out.println("to: " + token.balanceOf(pk_to));
-        System.out.println("total: " + token.totalSupply());
-        // текущее время - 20 фев
-        token.mock_setBlockchainTimeMills(feb20_ms);
-        
-        //  заморозить до 22 фев to
-        token.freezeAccount(pk_to, feb22);
-        System.out.println("to frozen status: " + token.isAccountFrozen(pk_to) + ", " + token.getAccountDefrostDate(pk_to));
-
-        // вызывает owner
-        token.mock_setInitiator(pk_owner);
-        // отозвать у service право сжигать и морозить
-        token.permitBurnBy(pk_service, false);
-        // вызывает service
-        token.mock_setInitiator(pk_service);
-        // изменить заморозку to
-        try {
-            token.freezeAccount(pk_to, feb23);
-        }
-        catch(RuntimeException x) {
-            System.out.println(x);
-        }
-        System.out.println("to frozen status: " + token.isAccountFrozen(pk_to) + ", " + token.getAccountDefrostDate(pk_to));
-
-        // заморозить to
-        token.mock_setInitiator(pk_owner);
-        token.defrostAccount(pk_to);
-        System.out.println("to frozen status: " + token.isAccountFrozen(pk_to) + ", " + token.getAccountDefrostDate(pk_to));
-
-        System.out.println("owner: " + token.balanceOf(pk_owner));
-        System.out.println("service: " + token.balanceOf(pk_service));
-        System.out.println("from: " + token.balanceOf(pk_from));
-        System.out.println("to: " + token.balanceOf(pk_to));
-        System.out.println("total: " + token.totalSupply());
     }
 }
